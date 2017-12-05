@@ -1,0 +1,5 @@
+---
+applications:
+ - name: pysample2
+   random-route: true
+   memory: 128M
