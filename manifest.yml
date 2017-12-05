@@ -1,5 +1,5 @@
 ---
 applications:
- - name: pysample2
+ - name: seismo-cloud-registration
    random-route: true
    memory: 128M
