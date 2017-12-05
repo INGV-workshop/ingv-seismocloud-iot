@@ -96,9 +96,10 @@ def put_device():
         key = os.getenv('key')
         token = os.getenv('token')
         org = os.getenv('org')
+        type = os.getenv('type')
 
     basic = HTTPBasicAuth(key, token)
-    url = "https://" + org + ".internetofthings.ibmcloud.com/api/v0002/device/types/seismo-demo-type/devices"
+    url = "https://" + org + ".internetofthings.ibmcloud.com/api/v0002/device/types/" + type + "/devices"
     global deviceId
     deviceId = request.json['deviceId']
     data = {"deviceId" : deviceId, "authToken": "123456zzzz"}
@@ -145,7 +146,8 @@ def emit_event():
     count = 0;
     client = ibmiotf.device.Client(options)
     client.connect()
-    for x in range (0,10):
+    evnum = request.json['num']
+    for x in range (0, evnum):
 	data = request.get_json()
 	def myOnPublishCallback():
                 print("Confirmed event %s received by IoTF\n" % x)
