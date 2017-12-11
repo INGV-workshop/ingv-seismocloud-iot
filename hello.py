@@ -6,6 +6,9 @@ import os
 import json
 import time
 import requests
+import datetime
+import random
+import math
 import ibmiotf.device
 from requests.auth import HTTPBasicAuth
 
@@ -136,6 +139,24 @@ def get_device():
 
 @app.route('/api/publish', methods=['POST'])
 def emit_event():
+    data = request.get_json()
+
+    global organization
+    if organization is None:
+        organization = os.getenv('org')
+
+    global deviceType
+    if deviceType is None:
+	deviceType = os.getenv('type')
+
+    global deviceId
+    if deviceId is None:
+	deviceId = data['deviceId']
+
+    global authToken
+    if authToken is None:
+	authToken = "123456zzzz"
+
     options = {
         "org": organization,
         "type": deviceType,
@@ -147,8 +168,21 @@ def emit_event():
     client = ibmiotf.device.Client(options)
     client.connect()
     evnum = request.json['num']
+    lat_start = data['latitude']
+    lon_start = data['longitude']
+
     for x in range (0, evnum):
-	data = request.get_json()
+        now = datetime.datetime.now()
+	dec_lat = random.random()/100
+        dec_lon = random.random()/100
+
+        latitude = float("{0:.6f}".format(lat_start+dec_lat))
+	longitude = float("{0:.6f}".format(lon_start+dec_lon))
+        data['latitude'] = latitude
+	data['longitude'] = longitude
+        data['time'] = now.strftime("%a,%d-%b-%Y %I:%M:%S %Z")
+        data.pop('num', None)
+        data.pop('deviceId', None)
 	def myOnPublishCallback():
                 print("Confirmed event %s received by IoTF\n" % x)
 	
