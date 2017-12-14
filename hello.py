@@ -8,6 +8,7 @@ import time
 import requests
 import datetime
 import random
+from random import randint
 import math
 import ibmiotf.device
 from requests.auth import HTTPBasicAuth
@@ -119,17 +120,22 @@ def put_device():
     
     clientid = data['clientId']
     tokens = clientid.split(":")
-    global organization
     organization = tokens[1]
     print (organization)
-    global deviceType
     deviceType = tokens[2]
     print (deviceType)
-    global authToken
     authToken = data['authToken']
     print(authToken)
 
-    return 'Hello %s!' % deviceId
+    result = {
+        "org": organization,
+        "type": deviceType,
+        "id": deviceId,
+        "auth-method": "token",
+        "auth-token": authToken
+    }
+
+    return json.dumps(result) 
 
 
 @app.route('/api/registration', methods=['GET'])
@@ -170,14 +176,25 @@ def emit_event():
     evnum = request.json['num']
     lat_start = data['latitude']
     lon_start = data['longitude']
+    lat_last = lat_start
+    lon_last = lon_start
 
     for x in range (0, evnum):
         now = datetime.datetime.now()
-	dec_lat = random.random()/100
-        dec_lon = random.random()/100
+	dec_lat = random.random()
+        dec_lon = random.random()
 
-        latitude = float("{0:.6f}".format(lat_start+dec_lat))
-	longitude = float("{0:.6f}".format(lon_start+dec_lon))
+        selector = randint(0,1)
+
+        if selector > 0.5:
+	    latitude = lat_last
+            longitude = lon_last
+        else:
+            latitude = float("{0:.6f}".format(lat_start+dec_lat))
+	    longitude = float("{0:.6f}".format(lon_start+dec_lon))
+            lat_last = latitude
+	    lon_last = longitude
+
         data['latitude'] = latitude
 	data['longitude'] = longitude
         data['time'] = now.strftime("%a,%d-%b-%Y %I:%M:%S %Z")
@@ -189,7 +206,8 @@ def emit_event():
 	success = client.publishEvent("greeting", "json", data, qos=0, on_publish=myOnPublishCallback)
 	if not success:
 		print("Not connected to IoTF")
-	time.sleep(1)
+        sr = randint(500,1500)
+	time.sleep(sr/1000)
         count+=1	
 
     # Disconnect the device and application from the cloud
